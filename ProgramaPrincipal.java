@@ -36,14 +36,18 @@ public class ProgramaPrincipal {
 				menuCadastroProfessores(teclado);
 				break;
 			
-			case 3: menuCadastroDisciplinas(teclado);
+			case 3: 
+				menuCadastroDisciplinas(teclado);
 				break;
-
+				
+			case 4:
+				break;
+				
 			default:
 				System.out.println("Opção inválida!");
 
 			}
-		} while (opcaoMenuCadastroPrincipal != 0);
+		} while (opcaoMenuCadastroPrincipal != 4);
 
 	}
 	
@@ -82,6 +86,8 @@ public class ProgramaPrincipal {
 			case 5:
 				listaTodosSqlAluno();
 				pausa();
+				break;
+			case 6:
 				break;
 			default:
 				System.out.println("Opção inválida!");
@@ -128,6 +134,8 @@ public class ProgramaPrincipal {
 				listaTodosSqlProfessor();
 				pausa();
 				break;
+			case 6:
+				break;
 			default:
 				System.out.println("Opção inválida!");
 
@@ -162,22 +170,66 @@ public class ProgramaPrincipal {
 				pausa();
 				break;
 			case 3:
-				excluiSqlProfessor(teclado);
+				excluiSqlDisciplina(teclado);
 				pausa();
 				break;
 			case 4:
-				consultaSqlProfessor(teclado);
+				consultaSqlDisciplina(teclado);
 				pausa();
 				break;
 			case 5:
-				listaTodosSqlProfessor();
+				listaTodosSqlDisciplina();
 				pausa();
+				break;
+			case 6:
 				break;
 			default:
 				System.out.println("Opção inválida!");
 
 			}
 		} while (opcaoMenuCadastroDisciplinas != 6);
+		System.out.println("\nRetornando ao menu anterior...");
+
+	}
+	
+	public static void menuCadastroMatriculas(Scanner teclado) {
+
+		int opcaoMenuCadastroMatriculas = 0;
+
+		do {
+			System.out.println("\n------------------- MENU DE MATRICULAS -------------------\n");
+			System.out.println("[1] - Cadastrar");
+			System.out.println("[2] - Remover");
+			System.out.println("[3] - Alunos de uma disciplina");
+			System.out.println("[4] - Disciplinas de um Aluno");
+			System.out.println("[5] - Menu anterior");
+			System.out.print("\nDigite a opção: ");
+			opcaoMenuCadastroMatriculas = teclado.nextInt();
+
+			switch (opcaoMenuCadastroMatriculas) {
+			case 1:
+				//cadastraSqlDisciplina(teclado);
+				pausa();
+				break;
+			case 2:
+			//	alteraSqlDisciplina(teclado);
+				pausa();
+				break;
+			case 3:
+			//	excluiSqlDisciplina(teclado);
+				pausa();
+				break;
+			case 4:
+			//	consultaSqlDisciplina(teclado);
+				pausa();
+				break;
+			case 5:
+				break;
+			default:
+				System.out.println("Opção inválida!");
+
+			}
+		} while (opcaoMenuCadastroMatriculas != 5);
 		System.out.println("\nRetornando ao menu anterior...");
 
 	}
@@ -371,6 +423,27 @@ public class ProgramaPrincipal {
 		}
 	}
 	
+	public static void excluiSqlDisciplina(Scanner teclado) {
+
+		try {
+			Connection con = DriverManager.getConnection("jdbc:postgresql://localhost:5432/GestaoDisciplinas",
+					"postgres", "Panda104455!");
+			System.out.println("\nTELA DE EXCLUSÃO DE DISCIPLINAS");
+			System.out.print("\nDigite o código da disciplina para exclusão: ");
+			int codigoDisciplina = teclado.nextInt();
+			String sqlExclui = "DELETE FROM disciplina where codigodisciplina = " + codigoDisciplina;
+			Statement stmConsulta = con.createStatement();
+			stmConsulta.executeUpdate(sqlExclui);
+
+			System.out.println("\nExcluindo DADOS...");
+			pausa();
+			System.out.println("\nDisciplina excluido da tabela com sucesso !");
+			pausa();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public static void consultaSqlAluno(Scanner teclado) {
 
 		try {
@@ -388,7 +461,7 @@ public class ProgramaPrincipal {
 
 			System.out.println("\n--------------- CONSULTANDO DADOS DOS ALUNOS ---------------\n");
 			while (result.next()) {
-				System.out.printf("Codigo: %d | Aluno: %s | CPF: %s", result.getInt(1), result.getString(2),
+				System.out.printf("| Codigo: %d | Aluno: %s | CPF: %s |", result.getInt(1), result.getString(2),
 						result.getString(3));
 				System.out.println();
 
@@ -417,8 +490,38 @@ public class ProgramaPrincipal {
 
 			System.out.println("\n--------------- CONSULTANDO DADOS DO PROFESSOR ---------------\n");
 			while (result.next()) {
-				System.out.printf("Codigo: %d | Professor: %s | CPF: %s", result.getInt(1), result.getString(2),
+				System.out.printf("| Codigo: %d | Professor: %s | CPF: %s |", result.getInt(1), result.getString(2),
 						result.getString(3));
+				System.out.println();
+
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+	}
+	
+	public static void consultaSqlDisciplina(Scanner teclado) {
+
+		try {
+			Connection con = DriverManager.getConnection("jdbc:postgresql://localhost:5432/GestaoDisciplinas",
+					"postgres", "Panda104455!");
+
+			System.out.println("\nMENU DE CONSULTAS DE DISCIPLINAS INDIVIDUAL");
+			teclado.nextLine();
+			System.out.print("\nDigite o nome da disciplina: ");
+			String nomeDisciplina = teclado.nextLine();
+			String sqlConsulta = "SELECT DISCIPLINA.codigodisciplina, DISCIPLINA.nomedisciplina, DISCIPLINA.cargahoraria, PROFESSOR.nomeprofessor FROM DISCIPLINA, PROFESSOR "
+					+ "where DISCIPLINA.codigoprofessor = PROFESSOR.codigoprofessor AND nomedisciplina like '" + nomeDisciplina + "'\n";
+			Statement stmConsulta = con.createStatement();
+			ResultSet result = null;
+			result = stmConsulta.executeQuery(sqlConsulta);
+
+			System.out.println("\n--------------- CONSULTANDO DADOS DA DISCIPLINA ---------------\n");
+			while (result.next()) {
+				System.out.printf("| Codigo: %d | Disciplina: %s | Carga Horária: %d | Professor: %s |", result.getInt(1), result.getString(2),
+						result.getInt(3),result.getString(4));
 				System.out.println();
 
 			}
@@ -478,7 +581,31 @@ public class ProgramaPrincipal {
 		}
 
 	}
+	
+	public static void listaTodosSqlDisciplina() {
+		try {
+			Connection con = DriverManager.getConnection("jdbc:postgresql://localhost:5432/GestaoDisciplinas",
+					"postgres", "Panda104455!");
+			String sqlConsulta = "SELECT DISCIPLINA.codigodisciplina, DISCIPLINA.nomedisciplina, DISCIPLINA.cargahoraria, PROFESSOR.nomeprofessor FROM DISCIPLINA, PROFESSOR where DISCIPLINA.codigoprofessor = PROFESSOR.codigoprofessor ORDER BY codigodisciplina";
+			
+			Statement stmConsulta = con.createStatement();
+			ResultSet result = null;
+			result = stmConsulta.executeQuery(sqlConsulta);
+			System.out.println("\n--------------- LISTANDO TODAS AS DISCIPLINAS ---------------\n");
 
+			while (result.next()) {
+				System.out.printf("Codigo: %d | Disciplina: %s | Carga horária: %d | Professor responsável: %s |\n", result.getInt(1), result.getString(2),
+						result.getInt(3), result.getString(4));
+				System.out.println();
+
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+	}
+	
 	public static void main(String[] args) {
 		Scanner teclado = new Scanner(System.in);
 		//String url = "jdbc:postgresql://localhost:5432/GestaoDisciplinas";
@@ -512,6 +639,6 @@ public class ProgramaPrincipal {
 			}
 
 		} while (opcaoMenuPrincipal != 0);
-
+		teclado.close();
 	}
 }

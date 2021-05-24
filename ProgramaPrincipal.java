@@ -258,7 +258,7 @@ public class ProgramaPrincipal {
 				pausa();
 				break;
 			case 3:
-				// consultaDisciplinaSqlAlunos(teclado);
+				listaProfessoresSemDisciplinas();
 				pausa();
 				break;
 			case 4:
@@ -862,7 +862,36 @@ public class ProgramaPrincipal {
 			e.printStackTrace();
 		}
 	}
+	
+	public static void listaProfessoresSemDisciplinas() {
+		try {
+			Connection con = DriverManager.getConnection("jdbc:postgresql://localhost:5432/GestaoDisciplinas",
+					"postgres", "Panda104455!");
+			String sqlConsulta = "SELECT PROFESSOR.codigoprofessor, PROFESSOR.nomeprofessor from PROFESSOR left join DISCIPLINA on PROFESSOR.codigoprofessor = DISCIPLINA.codigoprofessor where DISCIPLINA is null order by PROFESSOR.codigoprofessor";
+			Statement stmConsulta = con.createStatement();
+			ResultSet result = null;
+			result = stmConsulta.executeQuery(sqlConsulta);
+			boolean results = stmConsulta.execute(sqlConsulta);
+			System.out.println("\n--------------- LISTANDO TODOS OS PROFESSORES SEM DISCIPLINAS ---------------\n");
 
+			do {
+				if (results) {
+					ResultSet rs = stmConsulta.getResultSet();
+					System.out.println();
+					while (rs.next()) {
+
+						System.out.printf("| Código: %d | Professor: %s |\n", rs.getInt(1), rs.getString(2)) ;
+					}
+				}
+				System.out.println();
+				results = stmConsulta.getMoreResults();
+			} while (results);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public static void listarTotalCargaHorariaAluno() {
 
 		try {

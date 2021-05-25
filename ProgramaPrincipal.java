@@ -279,15 +279,33 @@ public class ProgramaPrincipal {
 	public static void cadastraSqlAluno(Scanner teclado) {
 
 		try {
-
+			String nomeAluno = "";
+			String cpf = "";
 			Connection con = DriverManager.getConnection("jdbc:postgresql://localhost:5432/GestaoDisciplinas",
 					"postgres", "Panda104455!");
-
 			teclado.nextLine();
-			System.out.print("\nDigite o nome do Aluno: ");
-			String nomeAluno = teclado.nextLine();
-			System.out.print("\nDigite o CPF do Aluno: ");
-			String cpf = teclado.nextLine();
+
+			Statement stmConsultado = con.createStatement();
+			String sqlConsulta = "select cpf from aluno";
+			ResultSet teste = stmConsultado.executeQuery(sqlConsulta);
+
+			while (nomeAluno.equals(null) || nomeAluno.equals("")) {
+				System.out.print("\nDigite o nome do Aluno: ");
+				nomeAluno = teclado.nextLine();
+				if (nomeAluno.equals(null) || nomeAluno.equals("")) {
+					System.out.println("\nNome em branco, tente novamente...");
+				}
+			}
+			while (cpf.equals(null) || cpf.equals("")) {
+				System.out.print("\nDigite o CPF do Aluno: ");
+				cpf = teclado.nextLine();
+
+				if (cpf.equals(null) || cpf.equals("")) {
+					System.out.println("\nCPF em branco, tente novamente...");
+				}
+
+			}
+
 			String sqlCadastro = "INSERT into aluno (nomeAluno, cpf)VALUES" + "('" + nomeAluno + "','" + cpf + "')";
 
 			Statement stmCadastrado = con.createStatement();
@@ -297,8 +315,9 @@ public class ProgramaPrincipal {
 				System.out.println("\nCadastrado com sucesso");
 				con.close();
 			}
+
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.out.println("\nCPF já existente na base de alunos, tente novamente !");
 		}
 
 	}
@@ -306,15 +325,31 @@ public class ProgramaPrincipal {
 	public static void cadastraSqlProfessor(Scanner teclado) {
 
 		try {
+			String nomeProfessor = "";
+			String cpf = "";
 
 			Connection con = DriverManager.getConnection("jdbc:postgresql://localhost:5432/GestaoDisciplinas",
 					"postgres", "Panda104455!");
 
 			teclado.nextLine();
-			System.out.print("\nDigite o nome do Professor: ");
-			String nomeProfessor = teclado.nextLine();
-			System.out.print("\nDigite o CPF do Professor: ");
-			String cpf = teclado.nextLine();
+
+			while (nomeProfessor.equals(null) || nomeProfessor.equals("")) {
+				System.out.print("\nDigite o nome do Professor: ");
+				nomeProfessor = teclado.nextLine();
+				if (nomeProfessor.equals(null) || nomeProfessor.equals("")) {
+					System.out.println("\nNome em branco, digite novamente...");
+				}
+			}
+			while (cpf.equals(null) || cpf.equals("")) {
+				System.out.print("\nDigite o CPF do Professor: ");
+				cpf = teclado.nextLine();
+
+				if (cpf.equals(null) || cpf.equals("")) {
+					System.out.println("\nCPF em branco, digite novamente...");
+				}
+
+			}
+
 			String sqlCadastro = "INSERT into PROFESSOR (nomeProfessor, cpf)VALUES" + "('" + nomeProfessor + "','" + cpf
 					+ "')";
 
@@ -326,7 +361,7 @@ public class ProgramaPrincipal {
 				con.close();
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.out.println("\nCPF já existente na base de professores, tente novamente !");
 		}
 
 	}
@@ -335,18 +370,48 @@ public class ProgramaPrincipal {
 
 		try {
 
+			int codigoDisciplina = 0;
+			String nomeDisciplina = "";
+			int cargaHoraria = 0;
+			int codigoProfessor = 0;
+
 			Connection con = DriverManager.getConnection("jdbc:postgresql://localhost:5432/GestaoDisciplinas",
 					"postgres", "Panda104455!");
 
-			System.out.print("\nDigite o codigo da Disciplina: ");
-			int codigoDisciplina = teclado.nextInt();
+			while (codigoDisciplina == 0) {
+				System.out.print("\nDigite o codigo da Disciplina: ");
+				codigoDisciplina = teclado.nextInt();
+				if (codigoDisciplina == 0) {
+					System.out.println("Código da Disciplina incorreto, tente novamente...");
+				}
+			}
+
 			teclado.nextLine();
-			System.out.print("\nDigite o nome da disciplina: ");
-			String nomeDisciplina = teclado.nextLine();
-			System.out.print("\nDigite a carga horária da disciplina: ");
-			int cargaHoraria = teclado.nextInt();
-			System.out.print("\nDigite o código do professor responsável pela disciplina: ");
-			int codigoProfessor = teclado.nextInt();
+
+			while (nomeDisciplina.equals(null) || nomeDisciplina.equals("")) {
+				System.out.print("\nDigite o nome da disciplina: ");
+				nomeDisciplina = teclado.nextLine();
+				if (nomeDisciplina.equals(null) || nomeDisciplina.equals("")) {
+					System.out.println("\nNome em branco, digite novamente...");
+				}
+			}
+
+			while (cargaHoraria == 0) {
+				System.out.print("\nDigite a carga horária da disciplina: ");
+				cargaHoraria = teclado.nextInt();
+				if (cargaHoraria == 0) {
+					System.out.println("Carga horária nula, tente novamente...");
+				}
+			}
+
+			while (codigoProfessor == 0) {
+				System.out.print("\nDigite o código do professor responsável pela disciplina: ");
+				codigoProfessor = teclado.nextInt();
+				if (cargaHoraria == 0) {
+					System.out.println("Código do professor nulo, tente novamente...");
+				}
+			}
+
 			String sqlCadastro = "INSERT into DISCIPLINA (codigodisciplina, nomeDisciplina, cargaHoraria, codigoProfessor)VALUES"
 					+ "('" + codigoDisciplina + "','" + nomeDisciplina + "','" + cargaHoraria + "','" + codigoProfessor
 					+ "')";
@@ -359,7 +424,7 @@ public class ProgramaPrincipal {
 				con.close();
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.out.println("\nCódigo da disciplina já existente na base de disciplinas, tente novamente !");
 		}
 
 	}
@@ -821,7 +886,7 @@ public class ProgramaPrincipal {
 					System.out.println();
 					while (rs.next()) {
 
-						System.out.printf("| Código: %d | Disciplina: %s |\n", rs.getInt(1), rs.getString(2)) ;
+						System.out.printf("| Código: %d | Disciplina: %s |\n", rs.getInt(1), rs.getString(2));
 					}
 				}
 				System.out.println();
@@ -851,7 +916,7 @@ public class ProgramaPrincipal {
 					System.out.println();
 					while (rs.next()) {
 
-						System.out.printf("| Código: %d | Aluno: %s |\n", rs.getInt(1), rs.getString(2)) ;
+						System.out.printf("| Código: %d | Aluno: %s |\n", rs.getInt(1), rs.getString(2));
 					}
 				}
 				System.out.println();
@@ -862,7 +927,7 @@ public class ProgramaPrincipal {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public static void listaProfessoresSemDisciplinas() {
 		try {
 			Connection con = DriverManager.getConnection("jdbc:postgresql://localhost:5432/GestaoDisciplinas",
@@ -880,7 +945,7 @@ public class ProgramaPrincipal {
 					System.out.println();
 					while (rs.next()) {
 
-						System.out.printf("| Código: %d | Professor: %s |\n", rs.getInt(1), rs.getString(2)) ;
+						System.out.printf("| Código: %d | Professor: %s |\n", rs.getInt(1), rs.getString(2));
 					}
 				}
 				System.out.println();
@@ -891,7 +956,7 @@ public class ProgramaPrincipal {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public static void listarTotalCargaHorariaAluno() {
 
 		try {
@@ -902,10 +967,12 @@ public class ProgramaPrincipal {
 			Statement stmConsulta = con.createStatement();
 			ResultSet result = null;
 			result = stmConsulta.executeQuery(sqlConsulta);
-			System.out.println("\n--------------- LISTANDO CARGA HORÁRIA DE TODOS OS ALUNOS MATRICULADOS ---------------\n");
+			System.out.println(
+					"\n--------------- LISTANDO CARGA HORÁRIA DE TODOS OS ALUNOS MATRICULADOS ---------------\n");
 
 			while (result.next()) {
-				System.out.printf("Codigo: %d | Aluno: %s | Total disciplinas: %d | Total carga horária: %d |\n", result.getInt(1), result.getString(2), result.getInt(3), result.getInt(4));
+				System.out.printf("Codigo: %d | Aluno: %s | Total disciplinas: %d | Total carga horária: %d |\n",
+						result.getInt(1), result.getString(2), result.getInt(3), result.getInt(4));
 				System.out.println();
 
 			}
@@ -915,7 +982,7 @@ public class ProgramaPrincipal {
 		}
 
 	}
-	
+
 	public static void main(String[] args) {
 		Scanner teclado = new Scanner(System.in);
 		ResultSet result = null;

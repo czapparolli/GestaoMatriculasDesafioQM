@@ -897,15 +897,15 @@ public class ProgramaPrincipal {
 		try {
 			Connection con = DriverManager.getConnection("jdbc:postgresql://localhost:5432/GestaoDisciplinas",
 					"postgres", "Panda104455!");
-			String sqlConsulta = "SELECT DISCIPLINA.cargaHoraria, DISCIPLINA.nomedisciplina, FROM DISCIPLINA, MATRICULA where DISCIPLINA.codigoprofessor = PROFESSOR.codigoprofessor ORDER BY codigodisciplina";
+			String sqlConsulta = "SELECT ALUNO.codigoaluno, ALUNO.nomealuno, count(DISCIPLINA.codigodisciplina), sum(DISCIPLINA.cargahoraria) from aluno, disciplina, matricula where ALUNO.codigoaluno = MATRICULA.codigoaluno and DISCIPLINA.codigodisciplina = MATRICULA.codigodisciplina  group by aluno.codigoaluno order by aluno.codigoaluno";
 
 			Statement stmConsulta = con.createStatement();
 			ResultSet result = null;
 			result = stmConsulta.executeQuery(sqlConsulta);
-			System.out.println("\n--------------- LISTANDO TODAS AS DISCIPLINAS SEM ALUNOS ---------------\n");
+			System.out.println("\n--------------- LISTANDO CARGA HORÁRIA DE TODOS OS ALUNOS MATRICULADOS ---------------\n");
 
 			while (result.next()) {
-				System.out.printf("Codigo: %d | Disciplina: %s |\n", result.getInt(1), result.getString(2));
+				System.out.printf("Codigo: %d | Aluno: %s | Total disciplinas: %d | Total carga horária: %d |\n", result.getInt(1), result.getString(2), result.getInt(3), result.getInt(4));
 				System.out.println();
 
 			}
@@ -915,12 +915,9 @@ public class ProgramaPrincipal {
 		}
 
 	}
-
+	
 	public static void main(String[] args) {
 		Scanner teclado = new Scanner(System.in);
-		// String url = "jdbc:postgresql://localhost:5432/GestaoDisciplinas";
-		// String usuario = "postgres";
-		// String senha = "Panda104455!";
 		ResultSet result = null;
 		System.out.println("Bem vindo a Gestão de Matrículas");
 

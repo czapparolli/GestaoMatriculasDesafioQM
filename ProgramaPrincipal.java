@@ -458,19 +458,24 @@ public class ProgramaPrincipal {
 	}
 
 	public static void alteraSqlAluno(Scanner teclado) {
+
 		try {
+			PreparedStatement st = null;
 			Connection con = DriverManager.getConnection("jdbc:postgresql://localhost:5432/GestaoDisciplinas",
 					"postgres", "Panda104455!");
-			System.out.println("\nAtualizando DADOS");
 			System.out.print("\nDigite o código do aluno: ");
 			int codigoAluno = teclado.nextInt();
 			teclado.nextLine();
 			System.out.print("\nDigite a alteração do nome: ");
 			String alteraNome = teclado.nextLine();
 			String sqlAltera = "update aluno set nomealuno = '" + alteraNome + "' where codigoAluno=" + codigoAluno;
-			Statement stmConsulta = con.createStatement();
-			stmConsulta.executeUpdate(sqlAltera);
-			System.out.println("Dados atualizados na tabela");
+			st = con.prepareStatement(sqlAltera);
+			int resultado = st.executeUpdate();
+			if (resultado > 0) {
+				System.out.println("\nDados atualizados na tabela");
+			} else {
+				System.out.println("Falha ao atualizar nome de aluno, código digitado não existe !");
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -524,21 +529,27 @@ public class ProgramaPrincipal {
 	public static void excluiSqlAluno(Scanner teclado) {
 
 		try {
+			PreparedStatement st = null;
 			Connection con = DriverManager.getConnection("jdbc:postgresql://localhost:5432/GestaoDisciplinas",
 					"postgres", "Panda104455!");
 			System.out.println("\nTELA DE EXCLUSÃO DE ALUNOS");
 			System.out.print("\nDigite o código do aluno para exclusão: ");
 			int codigoAluno = teclado.nextInt();
 			String sqlExclui = "DELETE FROM aluno where codigoAluno = " + codigoAluno;
-			Statement stmConsulta = con.createStatement();
-			stmConsulta.executeUpdate(sqlExclui);
+			st = con.prepareStatement(sqlExclui);
+			int resultado = st.executeUpdate();
+			if (resultado > 0) {
+				System.out.println("\nDados atualizados na tabela");
+				pausa();
+				System.out.println("\nAluno excluido da tabela com sucesso !");
 
-			System.out.println("\nAtualizando DADOS...");
-			pausa();
-			System.out.println("\nAluno excluido da tabela com sucesso !");
-			pausa();
+			} else {
+				System.out.println("\nFalha ao excluir aluno, código digitado não existe !");
+			}
+
 		} catch (Exception e) {
-			e.printStackTrace();
+
+			System.out.println("\nNão é possível excluir um aluno que esteja matriculado em alguma disciplina");
 		}
 	}
 
@@ -559,7 +570,7 @@ public class ProgramaPrincipal {
 			System.out.println("\nProfessor excluido da tabela com sucesso !");
 			pausa();
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.out.println("\nNão é possível excluir uma que tenha alunos matriculados nela");
 		}
 	}
 
@@ -580,7 +591,7 @@ public class ProgramaPrincipal {
 			System.out.println("\nDisciplina excluido da tabela com sucesso !");
 			pausa();
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.out.println("\nNão é possível excluir um professor que esteja vinculado a uma disciplina");
 		}
 	}
 
@@ -608,6 +619,7 @@ public class ProgramaPrincipal {
 	public static void consultaSqlAluno(Scanner teclado) {
 
 		try {
+			// PreparedStatement st = null;
 			Connection con = DriverManager.getConnection("jdbc:postgresql://localhost:5432/GestaoDisciplinas",
 					"postgres", "Panda104455!");
 
@@ -619,16 +631,16 @@ public class ProgramaPrincipal {
 			Statement stmConsulta = con.createStatement();
 			ResultSet result = null;
 			result = stmConsulta.executeQuery(sqlConsulta);
+			// st = con.prepareStatement(sqlConsulta);
+			// ResultSet resultado = st.executeQuery();
 
 			System.out.println("\n--------------- CONSULTANDO DADOS DOS ALUNOS ---------------\n");
 			while (result.next()) {
-				System.out.printf("| Codigo: %d | Aluno: %s | CPF: %s |", result.getInt(1), result.getString(2),
-						result.getString(3));
-				System.out.println();
-
-			}
-
-		} catch (Exception e) {
+					System.out.printf("| Codigo: %d | Aluno: %s | CPF: %s |", result.getInt(1), result.getString(2),
+							result.getString(3));
+					System.out.println();
+					// System.out.println("\n Nome do Aluno não encontrado, tente novamente !");
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 

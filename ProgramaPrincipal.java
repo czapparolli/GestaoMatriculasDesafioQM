@@ -628,18 +628,20 @@ public class ProgramaPrincipal {
 			System.out.print("\nDigite o nome completo do aluno:  ");
 			String nomeAluno = teclado.nextLine();
 			String sqlConsulta = "SELECT * FROM ALUNO where nomealuno like '" + nomeAluno + "'\n";
-			Statement stmConsulta = con.createStatement();
-			ResultSet result = null;
-			result = stmConsulta.executeQuery(sqlConsulta);
-			// st = con.prepareStatement(sqlConsulta);
-			// ResultSet resultado = st.executeQuery();
+			PreparedStatement stmConsulta = con.prepareStatement(sqlConsulta);
+			ResultSet result = stmConsulta.executeQuery();
+			System.out.println("\n--------------- CONSULTANDO DADOS DOS ALUNOS ---------------");
+			if (result.next()) {
+				result = stmConsulta.executeQuery();
+				while (result.next()) {
 
-			System.out.println("\n--------------- CONSULTANDO DADOS DOS ALUNOS ---------------\n");
-			while (result.next()) {
-					System.out.printf("| Codigo: %d | Aluno: %s | CPF: %s |", result.getInt(1), result.getString(2),
+					System.out.printf("\n| Codigo: %d | Aluno: %s | CPF: %s |", result.getInt(1), result.getString(2),
 							result.getString(3));
-					System.out.println();
-					// System.out.println("\n Nome do Aluno não encontrado, tente novamente !");
+				}
+			} else {
+				System.out.println("\n Nome do Aluno não encontrado, tente novamente !");
+			}
+
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

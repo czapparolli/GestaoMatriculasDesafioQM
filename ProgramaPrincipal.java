@@ -311,7 +311,7 @@ public class ProgramaPrincipal {
 			Statement stmCadastrado = con.createStatement();
 			int res = stmCadastrado.executeUpdate(sqlCadastro);
 
-			if (con != null) {
+			if (res > 0) {
 				System.out.println("\nCadastrado com sucesso");
 				con.close();
 			}
@@ -356,11 +356,12 @@ public class ProgramaPrincipal {
 			Statement stmCadastrado = con.createStatement();
 			int res = stmCadastrado.executeUpdate(sqlCadastro);
 
-			if (con != null) {
+			if (res > 0) {
 				System.out.println("\nCadastrado com sucesso");
 				con.close();
 			}
 		} catch (Exception e) {
+			System.out.println(e);
 			System.out.println("\nCPF já existente na base de professores, tente novamente !");
 		}
 
@@ -371,46 +372,85 @@ public class ProgramaPrincipal {
 		try {
 
 			int codigoDisciplina = 0;
+			int codDisciplina = 0;
 			String nomeDisciplina = "";
+			String nomeDisciplina2 = "";
 			int cargaHoraria = 0;
 			int codigoProfessor = 0;
+			int codProfessor = 0;
 
 			Connection con = DriverManager.getConnection("jdbc:postgresql://localhost:5432/GestaoDisciplinas",
 					"postgres", "Panda104455!");
 
-			while (codigoDisciplina == 0) {
+			do {
 				System.out.print("\nDigite o codigo da Disciplina: ");
 				codigoDisciplina = teclado.nextInt();
-				if (codigoDisciplina == 0) {
-					System.out.println("Código da Disciplina incorreto, tente novamente...");
+				String sqlConsulta = "SELECT codigoDisciplina FROM disciplina where codigoDisciplina ="
+						+ codigoDisciplina;
+				PreparedStatement st = con.prepareStatement(sqlConsulta);
+
+				ResultSet result = st.executeQuery();
+				if (result.next()) {
+					result = st.executeQuery();
+					while (result.next()) {
+						codDisciplina = result.getInt("codigoDisciplina");
+					}
 				}
-			}
+				if (codigoDisciplina == 0 || codigoDisciplina == codDisciplina) {
+					System.out.println("\nCódigo da Disciplina incorreto, duplicado, ou nulo tente novamente...");
+				}
+
+			} while (codigoDisciplina == 0 || codigoDisciplina == codDisciplina);
 
 			teclado.nextLine();
 
-			while (nomeDisciplina.equals(null) || nomeDisciplina.equals("")) {
-				System.out.print("\nDigite o nome da disciplina: ");
+			do {
+				System.out.print("\nDigite o nome da Disciplina: ");
 				nomeDisciplina = teclado.nextLine();
-				if (nomeDisciplina.equals(null) || nomeDisciplina.equals("")) {
-					System.out.println("\nNome em branco, digite novamente...");
+				String sqlConsulta = "SELECT nomeDisciplina FROM disciplina where nomeDisciplina ='" + nomeDisciplina
+						+ "'";
+				PreparedStatement st = con.prepareStatement(sqlConsulta);
+				ResultSet result = st.executeQuery();
+				if (result.next()) {
+					result = st.executeQuery();
+					while (result.next()) {
+						nomeDisciplina2 = result.getString("nomeDisciplina");
+					}
 				}
-			}
+
+				if (nomeDisciplina.equals(null) || nomeDisciplina.equals(null)
+						|| nomeDisciplina.equals(nomeDisciplina2)) {
+					System.out.println("\nNome da disciplina em branco, ou duplicado, digite novamente...");
+				}
+			} while (nomeDisciplina.equals(null) || nomeDisciplina.equals(null)
+					|| nomeDisciplina.equals(nomeDisciplina2));
 
 			while (cargaHoraria == 0) {
 				System.out.print("\nDigite a carga horária da disciplina: ");
 				cargaHoraria = teclado.nextInt();
 				if (cargaHoraria == 0) {
-					System.out.println("Carga horária nula, tente novamente...");
+					System.out.println("\nCarga horária nula, tente novamente...");
 				}
 			}
 
-			while (codigoProfessor == 0) {
-				System.out.print("\nDigite o código do professor responsável pela disciplina: ");
+			do {
+				System.out.print("\nDigite o codigo do professor responsável pela disciplina: ");
 				codigoProfessor = teclado.nextInt();
-				if (cargaHoraria == 0) {
-					System.out.println("Código do professor nulo, tente novamente...");
+				String sqlConsulta = "SELECT codigoProfessor FROM professor where codigoProfessor =" + codigoProfessor;
+				PreparedStatement st = con.prepareStatement(sqlConsulta);
+
+				ResultSet result = st.executeQuery();
+				if (result.next()) {
+					result = st.executeQuery();
+					while (result.next()) {
+						codProfessor = result.getInt("codigoProfessor");
+					}
 				}
-			}
+				if (codigoProfessor == 0 || codigoProfessor != codProfessor) {
+					System.out.println("\nCódigo do Professor incorreto, ou nulo tente novamente...");
+				}
+
+			} while (codigoProfessor == 0 || codigoProfessor != codProfessor);
 
 			String sqlCadastro = "INSERT into DISCIPLINA (codigodisciplina, nomeDisciplina, cargaHoraria, codigoProfessor)VALUES"
 					+ "('" + codigoDisciplina + "','" + nomeDisciplina + "','" + cargaHoraria + "','" + codigoProfessor
@@ -419,12 +459,12 @@ public class ProgramaPrincipal {
 			Statement stmCadastrado = con.createStatement();
 			int res = stmCadastrado.executeUpdate(sqlCadastro);
 
-			if (con != null) {
+			if (res > 0) {
 				System.out.println("\nCadastrado com sucesso");
 				con.close();
 			}
 		} catch (Exception e) {
-			System.out.println("\nCódigo da disciplina já existente na base de disciplinas, tente novamente !");
+			System.out.println(e);
 		}
 
 	}
@@ -483,6 +523,7 @@ public class ProgramaPrincipal {
 
 	public static void alteraSqlProfessor(Scanner teclado) {
 		try {
+			PreparedStatement st = null;
 			Connection con = DriverManager.getConnection("jdbc:postgresql://localhost:5432/GestaoDisciplinas",
 					"postgres", "Panda104455!");
 			System.out.println("\nAtualizando DADOS...");
@@ -493,9 +534,13 @@ public class ProgramaPrincipal {
 			String alteraNome = teclado.nextLine();
 			String sqlAltera = "update professor set nomeprofessor = '" + alteraNome + "' where codigoprofessor="
 					+ codigoProfessor;
-			Statement stmConsulta = con.createStatement();
-			stmConsulta.executeUpdate(sqlAltera);
-			System.out.println("\nDados atualizados na tabela");
+			st = con.prepareStatement(sqlAltera);
+			int resultado = st.executeUpdate();
+			if (resultado > 0) {
+				System.out.println("\nDados atualizados na tabela");
+			} else {
+				System.out.println("Falha ao atualizar nome do professor, código digitado não existe !");
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

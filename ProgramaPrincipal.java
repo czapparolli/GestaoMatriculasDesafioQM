@@ -10,10 +10,6 @@ public class ProgramaPrincipal {
 		}
 	}
 
-	public static void cls() {
-		for (int i = 0; i < 50; i++)
-			System.out.println("");
-	}
 
 	public static void menuCadastrosPrincipal(Scanner teclado) {
 
@@ -242,9 +238,11 @@ public class ProgramaPrincipal {
 			System.out.println("\n------------------- MENU DE RELATÓRIOS -------------------\n");
 			System.out.println("[1] - Listar disciplinas sem alunos");
 			System.out.println("[2] - Listar alunos sem matriculas");
-			System.out.println("[3] - Listar professores sem disciplinas");
-			System.out.println("[4] - Listar total de carga horário do aluno ");
-			System.out.println("[5] - Menu anterior");
+			System.out.println("[3] - Listar todas as matrículas ativas dos alunos");
+			System.out.println("[4] - Listar todas as matrículas ativas de um aluno");
+			System.out.println("[5] - Listar professores sem disciplinas");
+			System.out.println("[6] - Listar total de carga horário do aluno ");
+			System.out.println("[7] - Menu anterior");
 			System.out.print("\nDigite a opção: ");
 			opcaoMenuRelatorios = teclado.nextInt();
 
@@ -258,20 +256,28 @@ public class ProgramaPrincipal {
 				pausa();
 				break;
 			case 3:
-				listaProfessoresSemDisciplinas();
+				listaTodasAsMatriculas();
 				pausa();
 				break;
 			case 4:
-				listarTotalCargaHorariaAluno();
+				listaTodasAsMatriculasPorAluno(teclado);
 				pausa();
 				break;
 			case 5:
+				listaProfessoresSemDisciplinas();
+				pausa();
+				break;
+			case 6:
+				listaTotalCargaHorariaAluno();
+				pausa();
+				break;
+			case 7:
 				break;
 			default:
 				System.out.println("Opção inválida!");
 
 			}
-		} while (opcaoMenuRelatorios != 5);
+		} while (opcaoMenuRelatorios != 7);
 		System.out.println("\nRetornando ao menu anterior...");
 
 	}
@@ -279,15 +285,13 @@ public class ProgramaPrincipal {
 	public static void cadastraSqlAluno(Scanner teclado) {
 
 		try {
-			String nomeAluno = "";
 			String cpf = "";
+			String cpfVerifica = "";
+			String nomeAluno = "";
+
 			Connection con = DriverManager.getConnection("jdbc:postgresql://localhost:5432/GestaoDisciplinas",
 					"postgres", "Panda104455!");
 			teclado.nextLine();
-
-			Statement stmConsultado = con.createStatement();
-			String sqlConsulta = "select cpf from aluno";
-			ResultSet teste = stmConsultado.executeQuery(sqlConsulta);
 
 			while (nomeAluno.equals(null) || nomeAluno.equals("")) {
 				System.out.print("\nDigite o nome do Aluno: ");
@@ -296,15 +300,25 @@ public class ProgramaPrincipal {
 					System.out.println("\nNome em branco, tente novamente...");
 				}
 			}
-			while (cpf.equals(null) || cpf.equals("")) {
+
+			do {
 				System.out.print("\nDigite o CPF do Aluno: ");
 				cpf = teclado.nextLine();
+				String sqlConsulta = "SELECT cpf FROM aluno where cpf like '" + cpf + "'";
+				PreparedStatement st = con.prepareStatement(sqlConsulta);
 
-				if (cpf.equals(null) || cpf.equals("")) {
-					System.out.println("\nCPF em branco, tente novamente...");
+				ResultSet result = st.executeQuery();
+				if (result.next()) {
+					result = st.executeQuery();
+					while (result.next()) {
+						cpfVerifica = result.getString("cpf");
+					}
+				}
+				if (cpf.equals(null) || cpf.equals("") || cpf.equals(cpfVerifica)) {
+					System.out.println("\nCPF em branco ou duplicado na base de dados, digite novamente...");
 				}
 
-			}
+			} while (cpf.equals(null) || cpf.equals("") || cpf.equals(cpfVerifica));
 
 			String sqlCadastro = "INSERT into aluno (nomeAluno, cpf)VALUES" + "('" + nomeAluno + "','" + cpf + "')";
 
@@ -317,7 +331,7 @@ public class ProgramaPrincipal {
 			}
 
 		} catch (Exception e) {
-			System.out.println("\nCPF já existente na base de alunos, tente novamente !");
+			System.out.println("\nCPF digitado com mais de 11 digitos, processo de cadastramento abortado  !");
 		}
 
 	}
@@ -327,6 +341,7 @@ public class ProgramaPrincipal {
 		try {
 			String nomeProfessor = "";
 			String cpf = "";
+			String cpfVerifica = "";
 
 			Connection con = DriverManager.getConnection("jdbc:postgresql://localhost:5432/GestaoDisciplinas",
 					"postgres", "Panda104455!");
@@ -340,15 +355,25 @@ public class ProgramaPrincipal {
 					System.out.println("\nNome em branco, digite novamente...");
 				}
 			}
-			while (cpf.equals(null) || cpf.equals("")) {
+			
+			do {
 				System.out.print("\nDigite o CPF do Professor: ");
 				cpf = teclado.nextLine();
+				String sqlConsulta = "SELECT cpf FROM professor where cpf like '" + cpf + "'";
+				PreparedStatement st = con.prepareStatement(sqlConsulta);
 
-				if (cpf.equals(null) || cpf.equals("")) {
-					System.out.println("\nCPF em branco, digite novamente...");
+				ResultSet result = st.executeQuery();
+				if (result.next()) {
+					result = st.executeQuery();
+					while (result.next()) {
+						cpfVerifica = result.getString("cpf");
+					}
+				}
+				if (cpf.equals(null) || cpf.equals("") || cpf.equals(cpfVerifica)) {
+					System.out.println("\nCPF em branco ou duplicado na base de dados, digite novamente...");
 				}
 
-			}
+			} while (cpf.equals(null) || cpf.equals("") || cpf.equals(cpfVerifica));
 
 			String sqlCadastro = "INSERT into PROFESSOR (nomeProfessor, cpf)VALUES" + "('" + nomeProfessor + "','" + cpf
 					+ "')";
@@ -361,8 +386,7 @@ public class ProgramaPrincipal {
 				con.close();
 			}
 		} catch (Exception e) {
-			System.out.println(e);
-			System.out.println("\nCPF já existente na base de professores, tente novamente !");
+			System.out.println("\nCPF digitado com mais de 11 digitos, processo de cadastramento abortado  !");
 		}
 
 	}
@@ -472,7 +496,7 @@ public class ProgramaPrincipal {
 	public static void cadastraSqlMatricula(Scanner teclado) {
 
 		try {
-			
+
 			int codigoDisciplina = 0;
 			int codDisciplina = 0;
 			int codigoAluno = 0;
@@ -480,38 +504,34 @@ public class ProgramaPrincipal {
 
 			Connection con = DriverManager.getConnection("jdbc:postgresql://localhost:5432/GestaoDisciplinas",
 					"postgres", "Panda104455!");
-			
+
 			teclado.nextLine();
 			do {
-			
-					System.out.print("\nDigite o código da disciplina: ");
-					codigoDisciplina = teclado.nextInt();
-					String sqlConsulta = "SELECT codigoDisciplina FROM disciplina where codigoDisciplina ="
-							+ codigoDisciplina;
-					PreparedStatement st = con.prepareStatement(sqlConsulta);
 
-					ResultSet result = st.executeQuery();
-					if (result.next()) {
-						result = st.executeQuery();
-						while (result.next()) {
-							codDisciplina = result.getInt("codigoDisciplina");
-						}
-					}
-					if (codigoDisciplina == 0 || codigoDisciplina != codDisciplina) {
-						System.out.println("\nCódigo da Disciplina incorreto ou nulo tente novamente...");
-					}
+				System.out.print("\nDigite o código da disciplina: ");
+				codigoDisciplina = teclado.nextInt();
+				String sqlConsulta = "SELECT codigoDisciplina FROM disciplina where codigoDisciplina ="
+						+ codigoDisciplina;
+				PreparedStatement st = con.prepareStatement(sqlConsulta);
 
-				} while (codigoDisciplina == 0 || codigoDisciplina != codDisciplina);
-			
-			
-			
-			
+				ResultSet result = st.executeQuery();
+				if (result.next()) {
+					result = st.executeQuery();
+					while (result.next()) {
+						codDisciplina = result.getInt("codigoDisciplina");
+					}
+				}
+				if (codigoDisciplina == 0 || codigoDisciplina != codDisciplina) {
+					System.out.println("\nCódigo da Disciplina incorreto ou nulo tente novamente...");
+				}
+
+			} while (codigoDisciplina == 0 || codigoDisciplina != codDisciplina);
+
 			do {
-				
+
 				System.out.print("\nDigite o código do Aluno: ");
 				codigoAluno = teclado.nextInt();
-				String sqlConsulta = "SELECT codigoAluno FROM aluno where codigoAluno ="
-						+ codigoAluno;
+				String sqlConsulta = "SELECT codigoAluno FROM aluno where codigoAluno =" + codigoAluno;
 				PreparedStatement st = con.prepareStatement(sqlConsulta);
 
 				ResultSet result = st.executeQuery();
@@ -521,14 +541,12 @@ public class ProgramaPrincipal {
 						codAluno = result.getInt("codigoAluno");
 					}
 				}
-				if (codigoAluno== 0 || codigoAluno != codAluno) {
+				if (codigoAluno == 0 || codigoAluno != codAluno) {
 					System.out.println("\nCódigo do aluno incorreto ou nulo tente novamente...");
 				}
 
 			} while (codigoAluno == 0 || codigoAluno != codAluno);
-			
-			
-			
+
 			String sqlCadastro = "INSERT into matricula (codigoDisciplina, codigoAluno)VALUES" + "('" + codigoDisciplina
 					+ "','" + codigoAluno + "')";
 
@@ -548,21 +566,47 @@ public class ProgramaPrincipal {
 	public static void alteraSqlAluno(Scanner teclado) {
 
 		try {
-			PreparedStatement st = null;
+			int codAluno = 0 ;
+			int codigoAluno = 0 ;
+			String nomeAluno = "";
 			Connection con = DriverManager.getConnection("jdbc:postgresql://localhost:5432/GestaoDisciplinas",
 					"postgres", "Panda104455!");
-			System.out.print("\nDigite o código do aluno: ");
-			int codigoAluno = teclado.nextInt();
+			do {
+				System.out.print("\nDigite o código do aluno: ");
+				codigoAluno = teclado.nextInt();
+				String sqlConsulta = "SELECT codigoAluno FROM aluno where codigoAluno ="
+						+ codigoAluno;
+				PreparedStatement st = con.prepareStatement(sqlConsulta);
+
+				ResultSet result = st.executeQuery();
+				if (result.next()) {
+					result = st.executeQuery();
+					while (result.next()) {
+						codAluno = result.getInt("codigoAluno");
+					}
+				}
+				if (codigoAluno == 0 || codigoAluno != codAluno) {
+					System.out.println("\nCódigo do Aluno incorreto ou nulo tente novamente...");
+				}
+
+			} while (codigoAluno == 0 || codigoAluno != codAluno);
+
 			teclado.nextLine();
-			System.out.print("\nDigite a alteração do nome: ");
-			String alteraNome = teclado.nextLine();
-			String sqlAltera = "update aluno set nomealuno = '" + alteraNome + "' where codigoAluno=" + codigoAluno;
-			st = con.prepareStatement(sqlAltera);
+			
+			while (nomeAluno.equals(null) || nomeAluno.equals("")) {
+				System.out.print("\nDigite o novo nome para o aluno: ");
+				nomeAluno = teclado.nextLine();
+				if (nomeAluno.equals(null) || nomeAluno.equals("")) {
+					System.out.println("\nNome do aluno em branco, tente novamente...");
+				}
+			}
+			String sqlAltera = "update aluno set nomealuno = '" + nomeAluno + "' where codigoAluno=" + codigoAluno;
+			PreparedStatement st = con.prepareStatement(sqlAltera);
 			int resultado = st.executeUpdate();
 			if (resultado > 0) {
 				System.out.println("\nDados atualizados na tabela");
 			} else {
-				System.out.println("Falha ao atualizar nome de aluno, código digitado não existe !");
+				System.out.println("\nFalha ao atualizar nome de aluno !");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -571,23 +615,55 @@ public class ProgramaPrincipal {
 
 	public static void alteraSqlProfessor(Scanner teclado) {
 		try {
+			
+			int codProfessor = 0 ;
+			int codigoProfessor = 0 ;
+			String nomeProfessor = "";
 			PreparedStatement st = null;
 			Connection con = DriverManager.getConnection("jdbc:postgresql://localhost:5432/GestaoDisciplinas",
 					"postgres", "Panda104455!");
 			System.out.println("\nAtualizando DADOS...");
-			System.out.print("\nDigite o código do Professor: ");
-			int codigoProfessor = teclado.nextInt();
+			
+			do {
+				System.out.print("\nDigite o código do Professor: ");
+				codigoProfessor = teclado.nextInt();
+				String sqlConsulta = "SELECT codigoProfessor FROM professor where codigoProfessor ="
+						+ codigoProfessor;
+				st = con.prepareStatement(sqlConsulta);
+
+				ResultSet result = st.executeQuery();
+				if (result.next()) {
+					result = st.executeQuery();
+					while (result.next()) {
+						codProfessor = result.getInt("codigoProfessor");
+					}
+				}
+				if (codigoProfessor == 0 || codigoProfessor != codProfessor) {
+					System.out.println("\nCódigo do Aluno incorreto ou nulo tente novamente...");
+				}
+
+			} while (codigoProfessor == 0 || codigoProfessor != codProfessor);
+
 			teclado.nextLine();
-			System.out.print("\nDigite a alteração do nome: ");
-			String alteraNome = teclado.nextLine();
-			String sqlAltera = "update professor set nomeprofessor = '" + alteraNome + "' where codigoprofessor="
+			
+			while (nomeProfessor.equals(null) || nomeProfessor.equals("")) {
+				System.out.print("\nDigite o novo nome para o professor: ");
+				nomeProfessor = teclado.nextLine();
+				if (nomeProfessor.equals(null) || nomeProfessor.equals("")) {
+					System.out.println("\nNome do professor em branco, tente novamente...");
+				}
+			}
+			
+			
+			
+			String sqlAltera = "update professor set nomeprofessor = '" + nomeProfessor + "' where codigoprofessor="
 					+ codigoProfessor;
 			st = con.prepareStatement(sqlAltera);
 			int resultado = st.executeUpdate();
 			if (resultado > 0) {
 				System.out.println("\nDados atualizados na tabela");
 			} else {
-				System.out.println("Falha ao atualizar nome do professor, código digitado não existe !");
+				System.out.println("\nFalha ao atualizar nome do professor!");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -728,7 +804,6 @@ public class ProgramaPrincipal {
 			int resultado = stmt.executeUpdate();
 			if (resultado > 0) {
 				System.out.println("\nDados atualizados na tabela");
-				pausa();
 				System.out.println("\nAluno excluido da tabela com sucesso !");
 
 			} else {
@@ -754,9 +829,7 @@ public class ProgramaPrincipal {
 			stmConsulta.executeUpdate(sqlExclui);
 
 			System.out.println("\nAtualizando DADOS...");
-			pausa();
 			System.out.println("\nProfessor excluido da tabela com sucesso !");
-			pausa();
 		} catch (Exception e) {
 			System.out.println("\nNão é possível excluir uma que tenha alunos matriculados nela");
 		}
@@ -824,9 +897,7 @@ public class ProgramaPrincipal {
 			stmConsulta.executeUpdate(sqlExclui);
 
 			System.out.println("\nExcluindo DADOS...");
-			pausa();
 			System.out.println("\nMatricula excluida da tabela com sucesso !");
-			pausa();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -906,7 +977,7 @@ public class ProgramaPrincipal {
 			String sqlConsulta = "SELECT DISCIPLINA.codigodisciplina, DISCIPLINA.nomedisciplina, DISCIPLINA.cargahoraria, PROFESSOR.nomeprofessor FROM DISCIPLINA, PROFESSOR "
 					+ "where DISCIPLINA.codigoprofessor = PROFESSOR.codigoprofessor AND nomedisciplina like '"
 					+ nomeDisciplina + "'\n";
-			
+
 			PreparedStatement st = con.prepareStatement(sqlConsulta);
 			ResultSet result = st.executeQuery();
 
@@ -951,9 +1022,9 @@ public class ProgramaPrincipal {
 					+ codigoDisciplina + "'";
 			Statement stmConsulta = con.createStatement();
 			Statement stmConsulta1 = con.createStatement();
-			ResultSet result = null;
+			// ResultSet result = stmConsulta.executeQuery(sqlConsulta);
 			ResultSet result1 = null;
-			result = stmConsulta.executeQuery(sqlConsulta);
+
 			result1 = stmConsulta1.executeQuery(sqlConsultaTeste);
 
 			boolean results = stmConsulta.execute(sqlConsulta);
@@ -986,13 +1057,34 @@ public class ProgramaPrincipal {
 	public static void consultaDisciplinaSqlAlunos(Scanner teclado) {
 
 		try {
+			int codAluno = 0;
+			int codigoAluno = 0;
+
 			Connection con = DriverManager.getConnection("jdbc:postgresql://localhost:5432/GestaoDisciplinas",
 					"postgres", "Panda104455!");
 
 			System.out.println("\nMENU DE CONSULTA DE DISCIPLINAS DE UM ALUNO");
-			teclado.nextLine();
-			System.out.print("\nDigite o código do aluno: ");
-			String codigoAluno = teclado.nextLine();
+
+			do {
+
+				System.out.print("\nDigite o código do aluno: ");
+				codigoAluno = teclado.nextInt();
+				String sqlConsulta = "SELECT codigoAluno FROM aluno where codigoAluno =" + codigoAluno;
+				PreparedStatement st = con.prepareStatement(sqlConsulta);
+
+				ResultSet result = st.executeQuery();
+				if (result.next()) {
+					result = st.executeQuery();
+					while (result.next()) {
+						codigoAluno = result.getInt("codigoAluno");
+					}
+				}
+				if (codigoAluno == 0 || codigoAluno != codAluno) {
+					System.out.println("\nCódigo do aluno incorreto ou nulo tente novamente...");
+				}
+
+			} while (codigoAluno == 0 || codigoAluno != codAluno);
+
 			System.out.println();
 			String sqlConsulta = "SELECT DISCIPLINA.nomeDisciplina FROM MATRICULA,DISCIPLINA, ALUNO "
 					+ "where MATRICULA.codigoaluno = ALUNO.codigoaluno and MATRICULA.codigodisciplina = DISCIPLINA.codigodisciplina and MATRICULA.codigoAluno = '"
@@ -1001,10 +1093,8 @@ public class ProgramaPrincipal {
 					+ codigoAluno + "'";
 			Statement stmConsulta = con.createStatement();
 			Statement stmConsulta1 = con.createStatement();
-			ResultSet result = null;
-			ResultSet result1 = null;
-			result = stmConsulta.executeQuery(sqlConsulta);
-			result1 = stmConsulta1.executeQuery(sqlConsultaTeste);
+			// ResultSet result = stmConsulta.executeQuery(sqlConsulta);
+			ResultSet result1 = stmConsulta1.executeQuery(sqlConsultaTeste);
 
 			boolean results = stmConsulta.execute(sqlConsulta);
 
@@ -1026,6 +1116,9 @@ public class ProgramaPrincipal {
 				System.out.println();
 				results = stmConsulta.getMoreResults();
 			} while (results);
+
+			System.out.println("Digite enter para continuar...");
+			teclado.nextLine();
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1067,15 +1160,21 @@ public class ProgramaPrincipal {
 			Connection con = DriverManager.getConnection("jdbc:postgresql://localhost:5432/GestaoDisciplinas",
 					"postgres", "Panda104455!");
 			String sqlConsulta = "SELECT * FROM PROFESSOR ORDER BY codigoProfessor";
-			Statement stmConsulta = con.createStatement();
-			ResultSet result = null;
-			result = stmConsulta.executeQuery(sqlConsulta);
+			PreparedStatement st = con.prepareStatement(sqlConsulta);
+			ResultSet result = st.executeQuery();
 			System.out.println("\n--------------- LISTANDO TODOS OS PROFESSORES ---------------\n");
 
-			while (result.next()) {
-				System.out.printf("Codigo: %d | Professor: %s | CPF: %s\n", result.getInt(1), result.getString(2),
-						result.getString(3));
-				System.out.println();
+			if (result.next()) {
+				result = st.executeQuery();
+				while (result.next()) {
+					System.out.printf("Codigo: %d | Professor: %s | CPF: %s\n", result.getInt(1), result.getString(2),
+							result.getString(3));
+
+				}
+
+			} else {
+
+				System.out.println("No momento não temos nenhum professor cadastrado");
 
 			}
 
@@ -1090,7 +1189,7 @@ public class ProgramaPrincipal {
 			Connection con = DriverManager.getConnection("jdbc:postgresql://localhost:5432/GestaoDisciplinas",
 					"postgres", "Panda104455!");
 			String sqlConsulta = "SELECT DISCIPLINA.codigodisciplina, DISCIPLINA.nomedisciplina, DISCIPLINA.cargahoraria, PROFESSOR.nomeprofessor FROM DISCIPLINA, PROFESSOR where DISCIPLINA.codigoprofessor = PROFESSOR.codigoprofessor ORDER BY codigodisciplina";
-			
+
 			PreparedStatement st = con.prepareStatement(sqlConsulta);
 			ResultSet result = st.executeQuery();
 
@@ -1123,26 +1222,25 @@ public class ProgramaPrincipal {
 		try {
 			Connection con = DriverManager.getConnection("jdbc:postgresql://localhost:5432/GestaoDisciplinas",
 					"postgres", "Panda104455!");
-			String sqlConsulta = "SELECT DISCIPLINA.codigodisciplina, DISCIPLINA.nomedisciplina from disciplina left join matricula on MATRICULA.codigomatricula = DISCIPLINA.codigomatricula where matricula is null order by DISCIPLINA.codigodisciplina";
+			String sqlConsulta = "SELECT DISCIPLINA.codigodisciplina, DISCIPLINA.nomedisciplina from disciplina INNER JOIN matricula on MATRICULA.codigoDisciplina = DISCIPLINA.codigoDisciplina where DISCIPLINA.codigomatricula is null order by DISCIPLINA.codigodisciplina";
+			PreparedStatement st = con.prepareStatement(sqlConsulta);
+			ResultSet result = st.executeQuery();
+			System.out.println("\n--------------- LISTANDO TODAS AS DISCIPLINAS SEM ALUNOS ---------------\n");
 
-			Statement stmConsulta = con.createStatement();
-			ResultSet result = null;
-			result = stmConsulta.executeQuery(sqlConsulta);
-			boolean results = stmConsulta.execute(sqlConsulta);
-			System.out.println("\n--------------- LISTANDO TODAS AS DISCIPLINAS SEM MATRICULAS ---------------\n");
+			if (result.next()) {
+				result = st.executeQuery();
+				while (result.next()) {
+					System.out.printf("| Código: %d | Disciplina: %s |\n", result.getInt(1), result.getString(2));
 
-			do {
-				if (results) {
-					ResultSet rs = stmConsulta.getResultSet();
 					System.out.println();
-					while (rs.next()) {
 
-						System.out.printf("| Código: %d | Disciplina: %s |\n", rs.getInt(1), rs.getString(2));
-					}
 				}
-				System.out.println();
-				results = stmConsulta.getMoreResults();
-			} while (results);
+
+			} else {
+
+				System.out.println("No momento não temos nenhuma disciplina sem alunos matriculados");
+
+			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1155,24 +1253,24 @@ public class ProgramaPrincipal {
 			Connection con = DriverManager.getConnection("jdbc:postgresql://localhost:5432/GestaoDisciplinas",
 					"postgres", "Panda104455!");
 			String sqlConsulta = "SELECT ALUNO.codigoaluno, ALUNO.nomealuno from aluno LEFT JOIN MATRICULA on ALUNO.codigoaluno = matricula.codigoaluno where matricula is null order by ALUNO.codigoaluno";
-			Statement stmConsulta = con.createStatement();
-			ResultSet result = null;
-			result = stmConsulta.executeQuery(sqlConsulta);
-			boolean results = stmConsulta.execute(sqlConsulta);
+
+			PreparedStatement st = con.prepareStatement(sqlConsulta);
+			ResultSet result = st.executeQuery();
+
 			System.out.println("\n--------------- LISTANDO TODOS OS ALUNOS SEM MATRÍCULAS ---------------\n");
 
-			do {
-				if (results) {
-					ResultSet rs = stmConsulta.getResultSet();
-					System.out.println();
-					while (rs.next()) {
+			if (result.next()) {
+				result = st.executeQuery();
+				while (result.next()) {
+					System.out.printf("| Código: %d | Aluno: %s |\n", result.getInt(1), result.getString(2));
 
-						System.out.printf("| Código: %d | Aluno: %s |\n", rs.getInt(1), rs.getString(2));
-					}
 				}
-				System.out.println();
-				results = stmConsulta.getMoreResults();
-			} while (results);
+
+			} else {
+
+				System.out.println("No momento não temos nenhum aluno sem matrícula");
+
+			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1184,47 +1282,142 @@ public class ProgramaPrincipal {
 			Connection con = DriverManager.getConnection("jdbc:postgresql://localhost:5432/GestaoDisciplinas",
 					"postgres", "Panda104455!");
 			String sqlConsulta = "SELECT PROFESSOR.codigoprofessor, PROFESSOR.nomeprofessor from PROFESSOR left join DISCIPLINA on PROFESSOR.codigoprofessor = DISCIPLINA.codigoprofessor where DISCIPLINA is null order by PROFESSOR.codigoprofessor";
-			Statement stmConsulta = con.createStatement();
-			ResultSet result = null;
-			result = stmConsulta.executeQuery(sqlConsulta);
-			boolean results = stmConsulta.execute(sqlConsulta);
+			PreparedStatement st = con.prepareStatement(sqlConsulta);
+			ResultSet result = st.executeQuery();
+
 			System.out.println("\n--------------- LISTANDO TODOS OS PROFESSORES SEM DISCIPLINAS ---------------\n");
 
-			do {
-				if (results) {
-					ResultSet rs = stmConsulta.getResultSet();
+			if (result.next()) {
+				result = st.executeQuery();
+				while (result.next()) {
+					System.out.printf("| Código: %d | Professor: %s |\n", result.getInt(1), result.getString(2));
 					System.out.println();
-					while (rs.next()) {
-
-						System.out.printf("| Código: %d | Professor: %s |\n", rs.getInt(1), rs.getString(2));
-					}
 				}
-				System.out.println();
-				results = stmConsulta.getMoreResults();
-			} while (results);
 
+			} else {
+
+				System.out.println("No momento não temos nenhum professor sem disciplina");
+
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	public static void listarTotalCargaHorariaAluno() {
+	public static void listaTotalCargaHorariaAluno() {
 
 		try {
 			Connection con = DriverManager.getConnection("jdbc:postgresql://localhost:5432/GestaoDisciplinas",
 					"postgres", "Panda104455!");
 			String sqlConsulta = "SELECT ALUNO.codigoaluno, ALUNO.nomealuno, count(DISCIPLINA.codigodisciplina), sum(DISCIPLINA.cargahoraria) from aluno, disciplina, matricula where ALUNO.codigoaluno = MATRICULA.codigoaluno and DISCIPLINA.codigodisciplina = MATRICULA.codigodisciplina  group by aluno.codigoaluno order by aluno.codigoaluno";
 
-			Statement stmConsulta = con.createStatement();
-			ResultSet result = null;
-			result = stmConsulta.executeQuery(sqlConsulta);
+			PreparedStatement st = con.prepareStatement(sqlConsulta);
+			ResultSet result = st.executeQuery();
+
 			System.out.println(
 					"\n--------------- LISTANDO CARGA HORÁRIA DE TODOS OS ALUNOS MATRICULADOS ---------------\n");
 
-			while (result.next()) {
-				System.out.printf("Codigo: %d | Aluno: %s | Total disciplinas: %d | Total carga horária: %d |\n",
-						result.getInt(1), result.getString(2), result.getInt(3), result.getInt(4));
-				System.out.println();
+			if (result.next()) {
+				result = st.executeQuery();
+				while (result.next()) {
+					System.out.printf(
+							"Codigo: %d | Aluno: %s | Total de disciplinas: %d | Total de carga horária: %d |\n",
+							result.getInt(1), result.getString(2), result.getInt(3), result.getInt(4));
+					System.out.println();
+
+				}
+
+			} else {
+
+				System.out.println("No momento não temos nenhum aluno matrículado");
+
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	public static void listaTodasAsMatriculas() {
+
+		try {
+			Connection con = DriverManager.getConnection("jdbc:postgresql://localhost:5432/GestaoDisciplinas",
+					"postgres", "Panda104455!");
+			String sqlConsulta = "SELECT MATRICULA.codigoMAtricula, DISCIPLINA.nomeDisciplina, ALUNO.nomealuno from ALUNO INNER JOIN MATRICULA on MATRICULA.codigoaluno = ALUNO.codigoaluno INNER JOIN DISCIPLINA on DISCIPLINA.codigoDisciplina = MATRICULA.codigoDisciplina where matricula is not null order by ALUNO.nomeAluno";
+
+			PreparedStatement st = con.prepareStatement(sqlConsulta);
+			ResultSet result = st.executeQuery();
+
+			System.out.println("\n--------------- LISTANDO TODAS AS MATRÍCULAS ATIVAS ---------------\n");
+
+			if (result.next()) {
+				result = st.executeQuery();
+				while (result.next()) {
+					System.out.printf("| Nº da Matrícula: %d | Nome da Disciplina: %s | Aluno: %s |\n",
+							result.getInt(1), result.getString(2), result.getString(3));
+					System.out.println();
+
+				}
+
+			} else {
+
+				System.out.println("No momento não temos nenhum alunos matriculado");
+
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	public static void listaTodasAsMatriculasPorAluno(Scanner teclado) {
+
+		try {
+
+			int codigoAluno = 0;
+			int codAluno = 0;
+			Connection con = DriverManager.getConnection("jdbc:postgresql://localhost:5432/GestaoDisciplinas",
+					"postgres", "Panda104455!");
+			do {
+
+				System.out.print("\nDigite o código do aluno: ");
+				codigoAluno = teclado.nextInt();
+				String sqlConsulta2 = "SELECT ALUNO.codigoAluno FROM aluno where codigoAluno = '" + codigoAluno + "' ";
+				PreparedStatement st = con.prepareStatement(sqlConsulta2);
+				ResultSet result = st.executeQuery();
+
+				if (result.next()) {
+					result = st.executeQuery();
+					while (result.next()) {
+						codAluno = result.getInt("codigoAluno");
+					}
+				}
+				if (codigoAluno == 0 || codigoAluno != codAluno) {
+					System.out.println("\nCódigo do aluno incorreto ou nulo tente novamente...");
+				}
+			} while (codigoAluno == 0 || codigoAluno != codAluno);
+
+			System.out.println("\n--------------- LISTANDO TODAS AS MATRÍCULAS DO ALUNO ---------------\n");
+
+			String sqlConsulta = "SELECT MATRICULA.codigoMAtricula, DISCIPLINA.nomeDisciplina, ALUNO.nomealuno from ALUNO INNER JOIN MATRICULA on MATRICULA.codigoaluno = ALUNO.codigoaluno INNER JOIN DISCIPLINA on DISCIPLINA.codigoDisciplina = MATRICULA.codigoDisciplina where matricula is not null and ALUNO.codigoAluno = '"
+					+ codigoAluno + "'  order by ALUNO.nomeAluno";
+			PreparedStatement st = con.prepareStatement(sqlConsulta);
+			ResultSet result = st.executeQuery();
+
+			if (result.next()) {
+				result = st.executeQuery();
+				while (result.next()) {
+					System.out.printf("| Nº da Matrícula: %d | Nome da Disciplina: %s | Aluno: %s |\n",
+							result.getInt(1), result.getString(2), result.getString(3));
+					System.out.println();
+
+				}
+
+			} else {
+
+				System.out.println("No momento não temos nenhum alunos matriculado");
 
 			}
 
@@ -1236,7 +1429,7 @@ public class ProgramaPrincipal {
 
 	public static void main(String[] args) {
 		Scanner teclado = new Scanner(System.in);
-		ResultSet result = null;
+
 		System.out.println("Bem vindo a Gestão de Matrículas");
 
 		int opcaoMenuPrincipal = 0;

@@ -20,10 +20,10 @@ CREATE TABLE IF NOT EXISTS DISCIPLINA(
 	nomeDisciplina VARCHAR (50) NOT NULL,
 	cargaHoraria INT NOT NULL,
 	codigoProfessor INT NOT NULL,
-	codigoMatricula serial NOT NULL,
+	codigoMatricula INT,
 	PRIMARY KEY (codigoDisciplina),
 	FOREIGN KEY (codigoProfessor) REFERENCES PROFESSOR (codigoProfessor)
-	
+		
 );
 
 CREATE TABLE IF NOT EXISTS MATRICULA(
@@ -34,3 +34,5 @@ CREATE TABLE IF NOT EXISTS MATRICULA(
 	FOREIGN KEY (codigoAluno) REFERENCES ALUNO (codigoAluno),
 	PRIMARY KEY (codigoMatricula)
 );
+
+ALTER TABLE DISCIPLINA ADD CONSTRAINT codigoMatricula FOREIGN KEY (codigoMatricula) REFERENCES MATRICULA(codigoMatricula);
